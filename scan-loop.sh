@@ -31,14 +31,11 @@ while true; do
         WORKDIR=$(mktemp -d)
         echo "[$TIMESTAMP] Scan button pressed — scanning..."
 
-        # Scan all pages from ADF (timeout after 30s idle to handle feeder-empty hang)
+        # Scan all pages from ADF
         timeout 120 scanimage -d "$DEVICE" \
             --source "$SOURCE" \
             --resolution "$RESOLUTION" \
             --mode "$MODE" \
-            --swdeskew=yes \
-            --swdespeck 2 \
-            --buffermode On \
             --format=tiff \
             --batch="$WORKDIR/page-%04d.tiff" \
             --batch-count=-1 2>&1 || true
