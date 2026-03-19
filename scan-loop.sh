@@ -40,6 +40,8 @@ while true; do
             --page-height 876 \
             --ald=yes \
             --swskip 5 \
+            --swdeskew=yes \
+            --swdespeck 2 \
             --format=tiff \
             --batch="$WORKDIR/page-%04d.tiff" \
             --batch-count=-1 2>&1) || true
