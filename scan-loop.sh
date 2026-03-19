@@ -36,6 +36,8 @@ while true; do
             --source "$SOURCE" \
             --resolution "$RESOLUTION" \
             --mode "$MODE" \
+            --page-width 210 \
+            --page-height 297 \
             --format=tiff \
             --batch="$WORKDIR/page-%04d.tiff" \
             --batch-count=-1 2>&1) || true
