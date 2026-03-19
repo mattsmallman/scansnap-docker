@@ -79,13 +79,6 @@ while true; do
             for f in "$WORKDIR"/page-*.tiff; do
                 # White balance, normalize contrast, light sharpen
                 convert "$f" -white-threshold 88% -normalize -sharpen 0x1 "$f"
-
-                # Drop truly blank pages (bleed-through from thin receipt paper)
-                DARK_PCT=$(convert "$f" -threshold 80% -negate -format "%[fx:mean*100]" info: 2>/dev/null || echo "100")
-                if [ "$(echo "$DARK_PCT < 1" | bc 2>/dev/null || echo "0")" = "1" ]; then
-                    echo "[$TIMESTAMP] Dropping blank page $(basename "$f") (${DARK_PCT}% dark)"
-                    rm "$f"
-                fi
             done
 
             if convert "$WORKDIR"/page-*.tiff "$OUTFILE"; then

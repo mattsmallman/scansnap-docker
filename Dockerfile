@@ -5,7 +5,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsane1 \
     imagemagick \
     ghostscript \
-    bc \
     && rm -rf /var/lib/apt/lists/*
 
 # Allow ImageMagick to process PDFs (disabled by default)
