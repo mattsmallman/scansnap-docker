@@ -36,6 +36,12 @@ while true; do
             --source "$SOURCE" \
             --resolution "$RESOLUTION" \
             --mode "$MODE" \
+            --swdeskew=yes \
+            --swcrop=yes \
+            --swdespeck 2 \
+            --overscan On \
+            --prepick On \
+            --buffermode On \
             --format=tiff \
             --batch="$WORKDIR/page-%04d.tiff" \
             --batch-count=-1 2>&1 || true
@@ -45,6 +51,11 @@ while true; do
 
         if [ "$PAGE_COUNT" -gt 0 ]; then
             OUTFILE="$OUTPUT_DIR/scan-$TIMESTAMP.pdf"
+            # Post-process: white balance, normalize contrast, light sharpen
+            for f in "$WORKDIR"/page-*.tiff; do
+                convert "$f" -white-threshold 92% -normalize -sharpen 0x1 "$f"
+            done
+
             if convert "$WORKDIR"/page-*.tiff "$OUTFILE"; then
                 echo "[$TIMESTAMP] Saved $PAGE_COUNT pages to $OUTFILE"
             else
