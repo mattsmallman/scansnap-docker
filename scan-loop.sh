@@ -31,8 +31,8 @@ while true; do
         WORKDIR=$(mktemp -d)
         echo "[$TIMESTAMP] Scan button pressed — scanning..."
 
-        # Scan all pages from ADF
-        scanimage -d "$DEVICE" \
+        # Scan all pages from ADF (timeout after 30s idle to handle feeder-empty hang)
+        timeout 120 scanimage -d "$DEVICE" \
             --source "$SOURCE" \
             --resolution "$RESOLUTION" \
             --mode "$MODE" \
