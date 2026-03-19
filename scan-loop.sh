@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 
 OUTPUT_DIR="${OUTPUT_DIR:-/output}"
 RESOLUTION="${RESOLUTION:-300}"
@@ -45,8 +45,11 @@ while true; do
 
         if [ "$PAGE_COUNT" -gt 0 ]; then
             OUTFILE="$OUTPUT_DIR/scan-$TIMESTAMP.pdf"
-            magick "$WORKDIR"/page-*.tiff "$OUTFILE"
-            echo "[$TIMESTAMP] Saved $PAGE_COUNT pages to $OUTFILE"
+            if convert "$WORKDIR"/page-*.tiff "$OUTFILE"; then
+                echo "[$TIMESTAMP] Saved $PAGE_COUNT pages to $OUTFILE"
+            else
+                echo "[$TIMESTAMP] ERROR: Failed to create PDF"
+            fi
         else
             echo "[$TIMESTAMP] No pages scanned (empty ADF?)"
         fi
