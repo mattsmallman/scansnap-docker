@@ -39,7 +39,7 @@ while true; do
             --page-width 221 \
             --page-height 876 \
             --ald=yes \
-            --swskip 12 \
+            --swskip 20 \
             --swdeskew=yes \
             --swdespeck 2 \
             --format=tiff \
@@ -75,9 +75,18 @@ while true; do
 
         if [ "$PAGE_COUNT" -gt 0 ]; then
             OUTFILE="$OUTPUT_DIR/scan-$TIMESTAMP.pdf"
-            # Post-process: white balance, normalize contrast, light sharpen
+            # Post-process each page
             for f in "$WORKDIR"/page-*.tiff; do
-                convert "$f" -fuzz 10% -trim +repage -white-threshold 92% -normalize -sharpen 0x1 "$f"
+                # Trim scanner background (green/black borders), fix white balance, sharpen
+                convert "$f" -fuzz 15% -trim +repage -white-threshold 88% -normalize -sharpen 0x1 "$f"
+
+                # Drop near-blank pages (bleed-through from thin paper)
+                # Count non-white pixels after cleanup — if <8%, page is blank
+                DARK_PCT=$(convert "$f" -threshold 80% -negate -format "%[fx:mean*100]" info: 2>/dev/null || echo "100")
+                if [ "$(echo "$DARK_PCT < 8" | bc 2>/dev/null || echo "0")" = "1" ]; then
+                    echo "[$TIMESTAMP] Dropping blank page $(basename "$f") (${DARK_PCT}% dark)"
+                    rm "$f"
+                fi
             done
 
             if convert "$WORKDIR"/page-*.tiff "$OUTFILE"; then
