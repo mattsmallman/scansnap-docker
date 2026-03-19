@@ -77,11 +77,10 @@ while true; do
             OUTFILE="$OUTPUT_DIR/scan-$TIMESTAMP.pdf"
             # Post-process each page
             for f in "$WORKDIR"/page-*.tiff; do
-                # Trim scanner background (green/black borders), fix white balance, sharpen
-                convert "$f" -fuzz 5% -trim +repage -white-threshold 88% -normalize -sharpen 0x1 "$f"
+                # Light white balance to fix blue/green cast from scanner
+                convert "$f" -white-threshold 92% "$f"
 
-                # Drop near-blank pages (bleed-through from thin paper)
-                # Count non-white pixels after cleanup — if <8%, page is blank
+                # Drop near-blank pages (bleed-through from thin receipt paper)
                 DARK_PCT=$(convert "$f" -threshold 80% -negate -format "%[fx:mean*100]" info: 2>/dev/null || echo "100")
                 if [ "$(echo "$DARK_PCT < 3" | bc 2>/dev/null || echo "0")" = "1" ]; then
                     echo "[$TIMESTAMP] Dropping blank page $(basename "$f") (${DARK_PCT}% dark)"
