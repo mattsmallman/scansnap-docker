@@ -13,7 +13,7 @@ echo "Output: $OUTPUT_DIR | Resolution: $RESOLUTION | Mode: $MODE | Source: $SOU
 
 # Wait for scanner to appear
 while true; do
-    DEVICE=$(scanimage -L 2>/dev/null | grep -oP "fujitsu:\S+" || true)
+    DEVICE=$(scanimage -L 2>/dev/null | grep -oP "fujitsu:[^'\`]+" || true)
     if [ -n "$DEVICE" ]; then
         echo "Found scanner: $DEVICE"
         break
@@ -24,7 +24,7 @@ done
 
 # Poll for button press
 while true; do
-    BUTTON=$(scanimage -d "$DEVICE" -A 2>/dev/null | grep -oP '(?<=--scan\[=\(yes\|no\)\] \[)\w+' || true)
+    BUTTON=$(scanimage -d "$DEVICE" -A 2>/dev/null | grep -- '--scan' | grep -oP '\[\K(yes|no)(?=\])' || true)
 
     if [ "$BUTTON" = "yes" ]; then
         TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
