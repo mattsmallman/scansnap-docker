@@ -32,13 +32,37 @@ while true; do
         echo "[$TIMESTAMP] Scan button pressed — scanning..."
 
         # Scan all pages from ADF
-        timeout 120 scanimage -d "$DEVICE" \
+        SCAN_OUTPUT=$(timeout 120 scanimage -d "$DEVICE" \
             --source "$SOURCE" \
             --resolution "$RESOLUTION" \
             --mode "$MODE" \
             --format=tiff \
             --batch="$WORKDIR/page-%04d.tiff" \
-            --batch-count=-1 2>&1 || true
+            --batch-count=-1 2>&1) || true
+        SCAN_EXIT=$?
+
+        echo "$SCAN_OUTPUT"
+
+        # Check scanner sensors for error state
+        SENSORS=$(scanimage -d "$DEVICE" -A 2>/dev/null | grep -E '\[hardware\]' || true)
+        if echo "$SENSORS" | grep -q 'cover-open.*\[yes\]'; then
+            echo "[$TIMESTAMP] SENSOR: Cover open detected"
+        fi
+        if echo "$SENSORS" | grep -q 'omr-df.*\[yes\]'; then
+            echo "[$TIMESTAMP] SENSOR: Double feed detected"
+        fi
+        if echo "$SENSORS" | grep -q 'double-feed.*\[yes\]'; then
+            echo "[$TIMESTAMP] SENSOR: Double feed confirmed"
+        fi
+        ERROR_CODE=$(echo "$SENSORS" | grep 'error-code' | grep -oP '\[\K\d+(?=\])' || echo "0")
+        if [ "$ERROR_CODE" != "0" ]; then
+            echo "[$TIMESTAMP] SENSOR: Error code $ERROR_CODE"
+        fi
+        if [ "$SCAN_EXIT" -eq 124 ]; then
+            echo "[$TIMESTAMP] TIMEOUT: scanimage killed after 120s (feeder hang?)"
+        elif [ "$SCAN_EXIT" -ne 0 ]; then
+            echo "[$TIMESTAMP] scanimage exited with code $SCAN_EXIT"
+        fi
 
         # Count pages
         PAGE_COUNT=$(ls "$WORKDIR"/page-*.tiff 2>/dev/null | wc -l)
