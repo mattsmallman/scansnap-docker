@@ -2,7 +2,7 @@ FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     sane-utils \
-    libsane-extras \
+    libsane1 \
     imagemagick \
     ghostscript \
     && rm -rf /var/lib/apt/lists/*
