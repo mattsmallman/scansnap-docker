@@ -77,7 +77,7 @@ while true; do
             OUTFILE="$OUTPUT_DIR/scan-$TIMESTAMP.pdf"
             # Post-process: white balance, normalize contrast, light sharpen
             for f in "$WORKDIR"/page-*.tiff; do
-                convert "$f" -fuzz 10% -trim +repage -white-threshold 92% -normalize -sharpen 0x1 "$f"
+                convert "$f" -fuzz 10% -trim +repage -white-threshold 85% -normalize -sharpen 0x1 "$f"
             done
 
             if convert "$WORKDIR"/page-*.tiff "$OUTFILE"; then
