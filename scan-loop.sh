@@ -78,7 +78,7 @@ while true; do
             # Post-process each page
             for f in "$WORKDIR"/page-*.tiff; do
                 # Trim scanner background (green/black borders), fix white balance, sharpen
-                convert "$f" -fuzz 15% -trim +repage -white-threshold 88% -normalize -sharpen 0x1 "$f"
+                convert "$f" -fuzz 5% -trim +repage -white-threshold 88% -normalize -sharpen 0x1 "$f"
 
                 # Drop near-blank pages (bleed-through from thin paper)
                 # Count non-white pixels after cleanup — if <8%, page is blank
