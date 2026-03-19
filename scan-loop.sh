@@ -83,7 +83,7 @@ while true; do
                 # Drop near-blank pages (bleed-through from thin paper)
                 # Count non-white pixels after cleanup — if <8%, page is blank
                 DARK_PCT=$(convert "$f" -threshold 80% -negate -format "%[fx:mean*100]" info: 2>/dev/null || echo "100")
-                if [ "$(echo "$DARK_PCT < 8" | bc 2>/dev/null || echo "0")" = "1" ]; then
+                if [ "$(echo "$DARK_PCT < 3" | bc 2>/dev/null || echo "0")" = "1" ]; then
                     echo "[$TIMESTAMP] Dropping blank page $(basename "$f") (${DARK_PCT}% dark)"
                     rm "$f"
                 fi
