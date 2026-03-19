@@ -39,7 +39,6 @@ while true; do
             --page-width 221 \
             --page-height 876 \
             --ald=yes \
-            --swskip 20 \
             --swdeskew=yes \
             --swdespeck 2 \
             --format=tiff \
@@ -77,8 +76,9 @@ while true; do
             OUTFILE="$OUTPUT_DIR/scan-$TIMESTAMP.pdf"
             # Post-process each page
             for f in "$WORKDIR"/page-*.tiff; do
-                # White balance, normalize contrast, light sharpen
-                convert "$f" -white-threshold 88% -normalize -sharpen 0x1 "$f"
+                # Trim scanner background, white balance, normalize, sharpen
+                convert "$f" -bordercolor "#c0d0c0" -fuzz 8% -trim +repage \
+                    -white-threshold 88% -normalize -sharpen 0x1 "$f"
             done
 
             if convert "$WORKDIR"/page-*.tiff "$OUTFILE"; then
