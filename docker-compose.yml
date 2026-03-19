@@ -3,10 +3,11 @@ services:
     build: .
     container_name: scansnap
     restart: unless-stopped
-    devices:
-      - /dev/bus/usb/003/002:/dev/bus/usb/003/002
     volumes:
+      - /dev/bus/usb:/dev/bus/usb
       - ${CONSUME_PATH:-./consume}:/output
+    device_cgroup_rules:
+      - 'c 189:* rmw'
     environment:
       - RESOLUTION=${RESOLUTION:-300}
       - MODE=${MODE:-Color}
