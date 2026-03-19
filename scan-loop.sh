@@ -39,6 +39,7 @@ while true; do
             --page-width 221 \
             --page-height 876 \
             --ald=yes \
+            --swskip 5 \
             --format=tiff \
             --batch="$WORKDIR/page-%04d.tiff" \
             --batch-count=-1 2>&1) || true
