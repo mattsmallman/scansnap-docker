@@ -1,0 +1,15 @@
+services:
+  scansnap:
+    build: .
+    container_name: scansnap
+    restart: unless-stopped
+    devices:
+      - /dev/bus/usb/003/002:/dev/bus/usb/003/002
+    volumes:
+      - ${CONSUME_PATH:-./consume}:/output
+    environment:
+      - RESOLUTION=${RESOLUTION:-300}
+      - MODE=${MODE:-Color}
+      - SOURCE=${SOURCE:-ADF Duplex}
+      - POLL_INTERVAL=${POLL_INTERVAL:-0.5}
+      - DEBOUNCE=${DEBOUNCE:-3}
