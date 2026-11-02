@@ -14,3 +14,12 @@ services:
       - SOURCE=${SOURCE:-ADF Duplex}
       - POLL_INTERVAL=${POLL_INTERVAL:-0.5}
       - DEBOUNCE=${DEBOUNCE:-3}
+      # Heartbeat URL, set outside the repo (it's public): empty means no pings.
+      - HC_URL=${HC_URL:-}
+    # The scan loop touches /tmp/scanner-ok each time the scanner answers.
+    healthcheck:
+      test: ["CMD", "bash", "-c", "f=/tmp/scanner-ok; [ -f $$f ] && [ $$(( $$(date +%s) - $$(stat -c %Y $$f) )) -lt 60 ]"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
