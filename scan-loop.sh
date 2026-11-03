@@ -8,13 +8,14 @@ SOURCE="${SOURCE:-ADF Duplex}"
 POLL_INTERVAL="${POLL_INTERVAL:-0.5}"
 DEBOUNCE="${DEBOUNCE:-3}"
 # Optional Healthchecks-style ping URL (no trailing slash). Pinged hourly while
-# the scanner answers, and at /fail when a scan fails.
+# the loop runs, with the scanner attached or in standby, and at /fail when a
+# scan fails.
 HC_URL="${HC_URL:-}"
 HC_EVERY="${HC_EVERY:-3600}"
-# Seconds the scanner may stop answering before the loop exits, so the
-# container restarts and finds the device again.
+# Seconds the scanner may stop answering before the loop treats it as gone
+# (standby with the flaps closed, or unplugged) and waits for it again.
 LOST_AFTER="${LOST_AFTER:-60}"
-# Touched each time the scanner answers; the Docker healthcheck reads its age.
+# Touched on every pass of the loop; the Docker healthcheck reads its age.
 ALIVE_FILE=/tmp/scanner-ok
 
 hc() {
@@ -25,34 +26,44 @@ hc() {
 echo "ScanSnap button scanner starting..."
 echo "Output: $OUTPUT_DIR | Resolution: $RESOLUTION | Mode: $MODE | Source: $SOURCE"
 
-# Wait for scanner to appear
+LAST_PING=0
+# Hourly heartbeat: the loop is alive, whatever the scanner is doing.
+alive() {
+    touch "$ALIVE_FILE"
+    local now
+    now=$(date +%s)
+    if [ $((now - LAST_PING)) -ge "$HC_EVERY" ]; then
+        hc "" "$1"
+        LAST_PING=$now
+    fi
+}
+
+while true; do
+# Wait for the scanner to appear. It drops off USB in standby (flaps closed).
+echo "Waiting for scanner..."
 while true; do
     DEVICE=$(scanimage -L 2>/dev/null | grep -oP "fujitsu:[^'\`]+" || true)
     if [ -n "$DEVICE" ]; then
         echo "Found scanner: $DEVICE"
         break
     fi
-    echo "Waiting for scanner..."
+    alive "scanner in standby"
     sleep 5
 done
 
 # Poll for button press
 LAST_OK=$(date +%s)
-LAST_PING=0
 while true; do
     NOW=$(date +%s)
     OPTIONS=$(scanimage -d "$DEVICE" -A 2>/dev/null || true)
     if [ -n "$OPTIONS" ]; then
         LAST_OK=$NOW
-        touch "$ALIVE_FILE"
-        if [ $((NOW - LAST_PING)) -ge "$HC_EVERY" ]; then
-            hc "" "scanner attached: $DEVICE"
-            LAST_PING=$NOW
-        fi
+        alive "scanner attached: $DEVICE"
     elif [ $((NOW - LAST_OK)) -ge "$LOST_AFTER" ]; then
-        echo "Scanner not answering for ${LOST_AFTER}s, exiting so the container restarts"
-        hc "/fail" "scanner not answering for ${LOST_AFTER}s: $DEVICE"
-        exit 1
+        echo "Scanner not answering for ${LOST_AFTER}s (standby?), waiting for it again"
+        break
+    else
+        touch "$ALIVE_FILE"
     fi
     BUTTON=$(echo "$OPTIONS" | grep -- '--scan' | grep -oP '\[\K(yes|no)(?=\])' || true)
 
@@ -132,4 +143,5 @@ while true; do
     fi
 
     sleep "$POLL_INTERVAL"
+done
 done
